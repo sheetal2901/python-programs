@@ -1,3 +1,5 @@
+# Extract Accession Number from UniProt REST API Using Protein Name and Save to CSV
+# Use ThreadPoolExecutor to Process a Large Number of Protein Names
 import requests
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
