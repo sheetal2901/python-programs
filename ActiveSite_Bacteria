@@ -1,0 +1,73 @@
+# active site of bacteria using UNIPROT REST
+
+import xml.dom.minidom
+import pandas as pd
+from Bio.PDB.MMCIF2Dict import MMCIF2Dict
+import numpy as np
+import sys
+import wget
+from Bio.PDB import *
+import math
+from biopandas.mmcif import PandasMmcif
+from Bio.PDB.ResidueDepth import *
+
+
+desired_width = 1000
+pd.set_option('display.width', desired_width)
+pd.set_option('display.max_columns', 30)
+
+def find_indices(list_to_check, item_to_find):
+    return[idx for idx, value in enumerate(list_to_check) if value == item_to_find]
+
+df = pd.read_csv(r'D:/ENZYME-HYDROLASES/uni_ec_pdb_org.csv')
+print(df)
+myList = list(df[' Uniprot ID '])
+myList1 = list(df['PDBID'])
+print("mylist",myList)
+print("mylist2",myList1)
+
+A_loc = []
+m_res={}
+#
+for j in range(len(myList)):
+# for j in range(5):
+    try:
+        url = f'https://rest.uniprot.org/uniprotkb/{myList[j]}.xml'
+        path2 = 'D:/xmldelete'
+        filename = wget.download(url,out= path2)
+        domtree = xml.dom.minidom.parse(filename)
+        group = domtree.documentElement
+        # people = group.getElementsByTagName('subcellularLocation')
+
+        active = group.getElementsByTagName('feature')
+        txt = []
+        for site in active:
+            res = []
+            if site.getAttribute("type") == "active site":
+                act = site.getElementsByTagName('position')[0].getAttributeNode('position').nodeValue
+                txt.append(act)
+                res = [ele for ele in txt if
+                       txt != []]  ## Creates a new list from the previous appended list containing only non empty elements  ##
+                m_res[myList1[j]] = res
+            print(myList[j], myList1[j], "   Active Sites:", res)
+
+        # print("m_res",m_res)
+        # print(len(m_res))
+
+    except Exception as e:
+        print(e)
+# print(list(m_res.values()),list(m_res.keys()))
+# print(list(m_res.keys()))
+print(m_res)
+
+# df = pd.DataFrame.from_dict(m_res)
+# print(df)
+arr_of_val = []
+for k, d in m_res.items():
+    dict = k,d
+    print(dict)
+    arr_of_val.append(dict)
+
+df =pd.DataFrame.from_dict(arr_of_val)
+print(df)
+df.to_csv("D:/ENZYME-HYDROLASES/active site position_bacteria.csv")
